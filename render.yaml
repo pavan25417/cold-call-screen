@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cold-call-screen-backend
+    env: node
+    plan: free
+    buildCommand: npm --prefix backend install
+    startCommand: npm --prefix backend start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.0.0
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
