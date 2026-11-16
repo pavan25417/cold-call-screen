@@ -124,7 +124,7 @@ export default function App() {
       setEndCallPreData({
         currentStageNumber: stage_number,
         currentOutcome: what_happened,
-        currentWords: prospectWords
+        currentWords: prospect_words
       });
       setIsEndModalOpen(true);
     }

@@ -26,6 +26,15 @@ export default function EndCallModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [closedResult, setClosedResult] = useState(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedOutcome(
+        currentStageNumber === 8 || currentStageNumber === 7 ? 'next_step_agreed' : 'follow_up'
+      );
+      setClosedResult(null);
+    }
+  }, [isOpen, currentStageNumber]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {

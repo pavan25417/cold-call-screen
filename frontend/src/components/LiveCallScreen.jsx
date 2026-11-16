@@ -9,8 +9,11 @@ import {
   CornerDownLeft, 
   AlertCircle,
   Building2,
-  UserCheck
+  UserCheck,
+  Zap,
+  Sparkles
 } from 'lucide-react';
+import { DEMO_T095_SCRIPT } from '../stagesData.js';
 
 export default function LiveCallScreen({
   activeCall,
@@ -25,32 +28,41 @@ export default function LiveCallScreen({
   const [prospectWords, setProspectWords] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  const stageNum = currentStage?.stage_number || 1;
+  const isDemoCall = Boolean(
+    activeCall?.prospect_name?.toLowerCase().includes('dhanchand') || activeCall?.isDemo
+  );
+
   // Sync state whenever current stage changes or savedStageData updates
   useEffect(() => {
+    if (!currentStage) return;
+
     if (savedStageData) {
-      setSelectedOutcome(savedStageData.what_happened || '');
+      setSelectedOutcome(savedStageData.what_happened || currentStage.what_happened_options[0]);
       setProspectWords(savedStageData.prospect_words || '');
+    } else if (isDemoCall && DEMO_T095_SCRIPT[stageNum]) {
+      // For demo calls: pre-fill authentic transcript data to make video recording effortless
+      setSelectedOutcome(DEMO_T095_SCRIPT[stageNum].what_happened);
+      setProspectWords(DEMO_T095_SCRIPT[stageNum].prospect_words);
     } else {
-      setSelectedOutcome('');
+      // Default to first option pre-selected (Reference Screen principle: "Four taps, one of them already pressed")
+      setSelectedOutcome(currentStage.what_happened_options[0] || '');
       setProspectWords('');
     }
-  }, [currentStage?.stage_number, savedStageData]);
+  }, [currentStage?.stage_number, savedStageData, isDemoCall]);
 
   if (!currentStage) return null;
 
-  const stageNum = currentStage.stage_number;
   const nextStage = stages.find((s) => s.stage_number === stageNum + 1);
   const prevStage = stages.find((s) => s.stage_number === stageNum - 1);
 
   const handleNextClick = async () => {
-    if (!selectedOutcome) {
-      alert('Please tap what happened at this stage before proceeding.');
-      return;
-    }
+    // Graceful fallback to default option if none tapped
+    const outcomeToSave = selectedOutcome || currentStage.what_happened_options[0] || 'Completed';
     setIsSaving(true);
     await onSaveAndNext({
       stage_number: stageNum,
-      what_happened: selectedOutcome,
+      what_happened: outcomeToSave,
       prospect_words: prospectWords
     });
     setIsSaving(false);
@@ -59,7 +71,7 @@ export default function LiveCallScreen({
   const handleQuoteClick = (quoteText) => {
     // Clean outer quotes and paste into text box
     const clean = quoteText.replace(/^["']|["']$/g, '');
-    setProspectWords((prev) => (prev ? `${prev} | ${clean}` : clean));
+    setProspectWords(clean);
   };
 
   return (

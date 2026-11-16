@@ -64,8 +64,8 @@ export const STAGES = [
       "\"I am only looking after plant/technical operations, not company growth.\""
     ],
     what_happened_options: [
-      "Shared operational model & scale",
       "Clarified they are job work / domestic only",
+      "Shared operational model & scale",
       "Identified as MNC subsidiary / back office",
       "Prospect is wrong functional domain"
     ],
@@ -144,6 +144,41 @@ export const STAGES = [
     placeholder: "e.g. 'Yeah, aaram se, take your time. Done, thank you.'"
   }
 ];
+
+export const DEMO_T095_SCRIPT = {
+  1: {
+    what_happened: "Connected with right person",
+    prospect_words: "Yes, this is Dhanchand."
+  },
+  2: {
+    what_happened: "Understood purpose & willing to listen",
+    prospect_words: "Regarding what? Yes, please go ahead."
+  },
+  3: {
+    what_happened: "Granted permission (go ahead)",
+    prospect_words: "Please. Yeah, please go ahead."
+  },
+  4: {
+    what_happened: "Clarified they are job work / domestic only",
+    prospect_words: "Review discipline? These are corporate words. We are a small-scale company, sir."
+  },
+  5: {
+    what_happened: "Named specific bottleneck (margins / products / capacity)",
+    prospect_words: "We majorly work on job work. The margin is technically hardly any. Looking for people who can help me with new products with our facility."
+  },
+  6: {
+    what_happened: "Budget / cost objection (not spending money)",
+    prospect_words: "I don't want to spend any money on this, no. I'll be very specific. What is your product?"
+  },
+  7: {
+    what_happened: "Agreed to receive report on WhatsApp / email",
+    prospect_words: "Aap na mujhe bhej dijiye, let me first go through it. Can I call you on Wednesday? Yeah, aaram se."
+  },
+  8: {
+    what_happened: "Confirmed follow-up commitment & closed warmly",
+    prospect_words: "Yeah, aaram se, take your time. Done, thank you."
+  }
+};
 
 export const CALL_OUTCOMES = [
   { value: 'next_step_agreed', label: 'Next step agreed', color: 'emerald', description: 'Meeting or scheduled call confirmed' },
