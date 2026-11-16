@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  PhoneOff, 
-  Sparkles, 
-  CheckCircle2, 
-  Loader2, 
-  History, 
-  PlusCircle
-} from 'lucide-react';
-import { CALL_OUTCOMES } from '../stagesData.js';
+import { X, Check, Loader2 } from 'lucide-react';
+import { CALL_OUTCOMES, STAGES } from '../stagesData.js';
 
 export default function EndCallModal({
   isOpen,
@@ -36,6 +28,11 @@ export default function EndCallModal({
 
   if (!isOpen) return null;
 
+  const getStageName = (num) => {
+    const s = STAGES.find((item) => item.stage_number === num);
+    return s ? s.name : `Stage ${num}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -55,74 +52,63 @@ export default function EndCallModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex items-center justify-center p-4">
+      <div className="bg-white border border-zinc-200 w-full max-w-lg rounded-xl p-6 shadow-xl relative space-y-5 text-zinc-900">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-2xs">
-              <PhoneOff className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900">End Call & Record Outcome</h3>
-              <p className="text-xs text-slate-500 font-medium">
-                {activeCall?.prospect_name} · {activeCall?.company}
-              </p>
-            </div>
+        <div className="flex items-start justify-between border-b border-zinc-100 pb-3">
+          <div>
+            <h3 className="text-base font-bold text-zinc-900 tracking-tight">
+              {closedResult ? 'Call summary recorded' : 'End call and record outcome'}
+            </h3>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              {activeCall?.prospect_name} · {activeCall?.company}
+            </p>
           </div>
           {!closedResult && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 transition p-1"
+              className="text-zinc-400 hover:text-zinc-700 transition p-1"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* Closed Success State with AI Summary */}
+        {/* Closed Success State */}
         {closedResult ? (
-          <div className="space-y-5 py-2">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center space-y-1.5 shadow-2xs">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h4 className="font-extrabold text-slate-900 text-sm">Call Closed & Saved to Supabase</h4>
-              <p className="text-xs text-slate-600 font-medium">
-                Completed Stage {closedResult.call?.last_stage || currentStageNumber} of 8
-              </p>
+          <div className="space-y-4 py-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-800">
+              <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
+              <span>
+                Completed at Stage {closedResult.call?.last_stage || currentStageNumber} ({getStageName(closedResult.call?.last_stage || currentStageNumber)})
+              </span>
             </div>
 
-            {/* AI Generated Summary Display */}
-            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-1.5 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                <span>AI Generated One-Line Summary (Gemini)</span>
-              </div>
-              <p className="text-sm text-slate-800 font-semibold leading-relaxed italic">
+            {/* Generated Summary Display */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3.5 space-y-1">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
+                One-Line Summary:
+              </span>
+              <p className="text-sm text-zinc-900 leading-relaxed font-medium">
                 "{closedResult.summary || closedResult.call?.summary}"
               </p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={() => {
-                  onClose('view_past');
-                }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
+                onClick={() => onClose('view_past')}
+                className="flex-1 py-2 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition"
               >
-                <History className="w-4 h-4" />
-                <span>View in Past Calls</span>
+                View in past calls
               </button>
               <button
-                onClick={() => {
-                  onClose('new_call');
-                }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-200"
+                onClick={() => onClose('new_call')}
+                className="flex-1 py-2 px-4 rounded-lg bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold border border-zinc-300 transition"
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>Start New Call</span>
+                Start new call
               </button>
             </div>
           </div>
@@ -130,19 +116,21 @@ export default function EndCallModal({
           /* Form to select outcome */
           <form onSubmit={handleSubmit} className="space-y-4">
             
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs text-slate-600 font-medium">
-              <span>Terminating at Stage:</span>
-              <span className="font-bold text-slate-900">
-                Stage {currentStageNumber} of 8
+            {/* Stage Info */}
+            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-zinc-50 border border-zinc-200 rounded-lg font-medium text-zinc-600">
+              <span>Terminating stage:</span>
+              <span className="font-bold text-zinc-900">
+                Stage {currentStageNumber} of 8 · {getStageName(currentStageNumber)}
               </span>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Select Call Outcome (From Transcripts)
+            {/* Outcome Selection */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-700">
+                Outcome
               </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-0.5">
                 {CALL_OUTCOMES.map((outcome) => {
                   const isSelected = selectedOutcome === outcome.value;
                   return (
@@ -150,14 +138,16 @@ export default function EndCallModal({
                       key={outcome.value}
                       type="button"
                       onClick={() => setSelectedOutcome(outcome.value)}
-                      className={`p-2.5 rounded-xl text-left border transition text-xs flex flex-col justify-between ${
+                      className={`p-2.5 rounded-lg text-left border transition text-xs flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20 font-bold'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
+                          ? 'bg-zinc-900 text-white border-zinc-900 font-semibold'
+                          : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-800'
                       }`}
                     >
-                      <span className="font-bold truncate">{outcome.label}</span>
-                      <span className="text-[10px] text-slate-500 line-clamp-1 mt-0.5 font-normal">
+                      <span className="font-semibold truncate">{outcome.label}</span>
+                      <span className={`text-[10px] line-clamp-1 mt-0.5 font-normal ${
+                        isSelected ? 'text-zinc-300' : 'text-zinc-500'
+                      }`}>
                         {outcome.description}
                       </span>
                     </button>
@@ -166,41 +156,32 @@ export default function EndCallModal({
               </div>
             </div>
 
-            {/* AI Summary Notice */}
-            <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-3 text-xs text-slate-700 flex items-start gap-2.5">
-              <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-emerald-950 font-bold">Automatic Gemini 1-Line Summary:</span>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  Backend will synthesize the prospect's exact words from Stage 5 and agreed next step into a single sentence.
-                </p>
-              </div>
-            </div>
+            {/* Quiet summary notice */}
+            <p className="text-[11px] text-zinc-500 leading-normal">
+              A one-line executive summary will be synthesized automatically from Stage 5 prospect notes and saved to the call record.
+            </p>
 
-            {/* Submit button */}
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            {/* Submit Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+                className="px-3 py-2 text-xs font-semibold text-zinc-500 hover:text-zinc-800 transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !selectedOutcome}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Writing Summary with Gemini...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving call...</span>
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Save & Generate AI Summary</span>
-                  </>
+                  <span>End call and save</span>
                 )}
               </button>
             </div>
