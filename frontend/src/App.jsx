@@ -96,28 +96,15 @@ export default function App() {
     }
   };
 
-  const handleSaveAndNext = async ({ stage_number, what_happened, prospect_words }) => {
-    // 1. Update state locally
+  const handleSaveAndNext = ({ stage_number, what_happened, prospect_words }) => {
+    // 1. Instant optimistic state update (0ms lag!)
     const updated = {
       ...completedStages,
       [stage_number]: { what_happened, prospect_words }
     };
     setCompletedStages(updated);
 
-    // 2. Persist to backend if active call has ID
-    if (activeCall?.id && !activeCall.id.startsWith('local-')) {
-      try {
-        await api.saveStageResult(activeCall.id, {
-          stage_number,
-          what_happened,
-          prospect_words
-        });
-      } catch (err) {
-        console.warn('Could not persist stage to backend:', err);
-      }
-    }
-
-    // 3. Move to next stage or trigger end call modal if at stage 8
+    // 2. Advance stage or complete call immediately
     if (stage_number < stages.length) {
       setCurrentStageNumber(stage_number + 1);
     } else {
@@ -127,6 +114,17 @@ export default function App() {
         currentWords: prospect_words
       });
       setIsEndModalOpen(true);
+    }
+
+    // 3. Persist to backend in background without blocking UI
+    if (activeCall?.id && !activeCall.id.startsWith('local-')) {
+      api.saveStageResult(activeCall.id, {
+        stage_number,
+        what_happened,
+        prospect_words
+      }).catch((err) => {
+        console.warn('Could not persist stage to backend in background:', err);
+      });
     }
   };
 
@@ -182,7 +180,7 @@ export default function App() {
   const currentSavedStageData = completedStages[currentStageNumber];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans">
       
       {/* Top Header */}
       <Header
@@ -198,17 +196,17 @@ export default function App() {
 
       {/* Render Alert when sleeping (Free Tier UX) */}
       {backendHealth?.status === 'down' && !isBannerDismissed && (
-        <div className="bg-amber-950/40 border-b border-amber-800/40 px-4 py-2 text-xs text-amber-300 flex items-center justify-between">
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-800 flex items-center justify-between">
           <div className="max-w-4xl mx-auto w-full flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="font-medium">
                 Render backend is spinning up from idle state. Ready for demo calls in seconds.
               </span>
             </div>
             <button
               onClick={() => setIsBannerDismissed(true)}
-              className="text-amber-400 hover:text-white px-1.5 py-0.5 rounded text-[11px] font-bold"
+              className="text-amber-800 hover:text-black px-1.5 py-0.5 rounded text-[11px] font-bold"
               title="Dismiss notice"
             >
               ✕
@@ -242,49 +240,51 @@ export default function App() {
             />
           ) : (
             /* Empty State: Prompt Caller to Start Call */
-            <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
-                <PhoneCall className="w-8 h-8" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                  Ready for your next cold call?
-                </h2>
-                <p className="text-sm text-slate-400 leading-relaxed">
-                  Keep this companion screen open during the call. It will guide you through all 8 stages: Opening → Purpose → Permission → Business → Need → Objection → Next step → Close.
-                </p>
-              </div>
+            <div className="max-w-md mx-auto px-4 py-16 text-center space-y-6">
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-5">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
+                  <PhoneCall className="w-7 h-7" />
+                </div>
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    Start Live Cold Call
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Keep this companion screen open during your cold call. It guides you step-by-step through all 8 stages from Opening to Close.
+                  </p>
+                </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  onClick={() => setIsStartModalOpen(true)}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-950/40 transition flex items-center justify-center gap-2"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>Start Cold Call</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('past')}
-                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-sm font-semibold border border-slate-800 transition"
-                >
-                  View Past Calls ({callsList.length})
-                </button>
-              </div>
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    onClick={() => setIsStartModalOpen(true)}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Start New Call</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('past')}
+                    className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 transition"
+                  >
+                    View Past Calls ({callsList.length})
+                  </button>
+                </div>
 
-              {/* Demo call quick button */}
-              <div className="pt-6 border-t border-slate-900">
-                <button
-                  onClick={() => {
-                    handleStartCall({
-                      prospect_name: 'Mr. Dhanchand',
-                      company: 'Dhanchand Chemicals'
-                    });
-                  }}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1.5 p-2 rounded-lg hover:bg-emerald-950/30 transition"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>1-Click Launch Video Demo: Mr. Dhanchand (T095)</span>
-                </button>
+                {/* Demo call quick button */}
+                <div className="pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      handleStartCall({
+                        prospect_name: 'Mr. Dhanchand',
+                        company: 'Dhanchand Chemicals'
+                      });
+                    }}
+                    className="w-full text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 p-2.5 rounded-xl transition flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>1-Click Launch Video Demo: Mr. Dhanchand (T095)</span>
+                  </button>
+                </div>
               </div>
             </div>
           )
