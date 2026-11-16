@@ -1,11 +1,14 @@
-const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'https://cold-call-screen-backend.onrender.com').replace(/\/$/, '');
 
 export const api = {
   baseUrl: API_BASE_URL,
 
   async checkHealth() {
     try {
-      const res = await fetch(`${API_BASE_URL}/health`, { signal: AbortSignal.timeout(4000) });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (!res.ok) throw new Error(`Status ${res.status}`);
       return await res.json();
     } catch (err) {

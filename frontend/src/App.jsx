@@ -19,7 +19,8 @@ export default function App() {
 
   const [callsList, setCallsList] = useState([]);
   const [isLoadingCalls, setIsLoadingCalls] = useState(false);
-  const [backendHealth, setBackendHealth] = useState({ status: 'checking' });
+  const [backendHealth, setBackendHealth] = useState({ status: 'ok' });
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
 
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
@@ -61,6 +62,9 @@ export default function App() {
     try {
       const data = await api.fetchCalls();
       setCallsList(data);
+      if (Array.isArray(data)) {
+        setBackendHealth((prev) => ({ ...prev, status: 'ok' }));
+      }
     } catch (err) {
       console.warn('Failed to load calls list from backend:', err);
     } finally {
@@ -193,13 +197,22 @@ export default function App() {
       />
 
       {/* Render Alert when sleeping (Free Tier UX) */}
-      {backendHealth?.status !== 'ok' && (
+      {backendHealth?.status === 'down' && !isBannerDismissed && (
         <div className="bg-amber-950/40 border-b border-amber-800/40 px-4 py-2 text-xs text-amber-300 flex items-center justify-between">
-          <div className="max-w-4xl mx-auto w-full flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>
-              Render backend is spinning up from idle state. Ready for demo calls in seconds.
-            </span>
+          <div className="max-w-4xl mx-auto w-full flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                Render backend is spinning up from idle state. Ready for demo calls in seconds.
+              </span>
+            </div>
+            <button
+              onClick={() => setIsBannerDismissed(true)}
+              className="text-amber-400 hover:text-white px-1.5 py-0.5 rounded text-[11px] font-bold"
+              title="Dismiss notice"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
