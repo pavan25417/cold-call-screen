@@ -2,6 +2,7 @@
   {
     "stage_number": 1,
     "name": "Opening",
+    "short_name": "Opening",
     "purpose": "Reach the right person, establish identity, and verify if they are still with the company.",
     "they_may_say": [
       "\"Yes, speaking. Who is this?\"",
@@ -14,12 +15,19 @@
       "Wrong number / person left company",
       "Bad connection / asked to call back"
     ],
-    "placeholder": "e.g. He left the company 2 years ago, or Yes this is Dhanchand"
+    "relative_texts": {
+      "Connected with right person": "Yes, speaking. Who is this?",
+      "Gatekeeper / switchboard assistant": "He is in a meeting right now, what is this regarding?",
+      "Wrong number / person left company": "Aap kisse baat karna chahte hain? Wrong number, he left two years ago.",
+      "Bad connection / asked to call back": "Awaaz nahi aa rahi hai, please call me back after some time."
+    },
+    "placeholder": "e.g. 'He left the company two years ago' or 'Yes, speaking'"
   },
   {
     "stage_number": 2,
     "name": "Purpose",
-    "purpose": "State in one or two sentences why you called, in words the prospect can repeat to a colleague.",
+    "short_name": "Purpose",
+    "purpose": "Say in one or two sentences why you called, in words the prospect can repeat to a colleague.",
     "they_may_say": [
       "\"From where? Can you say the company name again?\"",
       "\"Where did you get my number from?\"",
@@ -31,12 +39,19 @@
       "Asked where we got their contact info",
       "Suspected sales call / defensive"
     ],
-    "placeholder": "e.g. What does your company do exactly, are you a consultant?"
+    "relative_texts": {
+      "Understood purpose & willing to listen": "Regarding what? Yes, please go ahead.",
+      "Asked what company does / asked to repeat": "From where? Can you say the company name again?",
+      "Asked where we got their contact info": "Where did you get my contact number from?",
+      "Suspected sales call / defensive": "What does a growth report mean? Is this a sales call?"
+    },
+    "placeholder": "e.g. 'What does Meridian do exactly, are you consulting or media?'"
   },
   {
     "stage_number": 3,
     "name": "Permission",
-    "purpose": "Find out whether they are willing to talk right now or if a specific callback time is needed.",
+    "short_name": "Permission",
+    "purpose": "Find out whether they are willing to talk now or if a specific callback time is needed.",
     "they_may_say": [
       "\"Haan boliye, go ahead, I can speak for 2 minutes.\"",
       "\"I am driving / in a meeting right now, call me after 30 minutes.\"",
@@ -48,11 +63,18 @@
       "Requested WhatsApp / email before talking",
       "Flat refusal / not interested"
     ],
-    "placeholder": "e.g. I am in a meeting right now, please call me after 4 PM"
+    "relative_texts": {
+      "Granted permission (go ahead)": "Haan boliye, go ahead, I can speak for 2 minutes.",
+      "Busy now (asked to call back later)": "I am driving / in a meeting right now, call me after 30 minutes.",
+      "Requested WhatsApp / email before talking": "Drop a message or send it on WhatsApp first.",
+      "Flat refusal / not interested": "Not interested right now, thank you."
+    },
+    "placeholder": "e.g. 'I am in a client meeting right now, please call after 30 minutes'"
   },
   {
     "stage_number": 4,
     "name": "Their business",
+    "short_name": "Business",
     "purpose": "Ask about their company and operations before saying anything about your solutions.",
     "they_may_say": [
       "\"We are a small-scale manufacturer doing job work, not corporate.\"",
@@ -60,16 +82,23 @@
       "\"I am only looking after plant/technical operations, not company growth.\""
     ],
     "what_happened_options": [
-      "Shared operational model & scale",
       "Clarified they are job work / domestic only",
+      "Shared operational model & scale",
       "Identified as MNC subsidiary / back office",
       "Prospect is wrong functional domain"
     ],
-    "placeholder": "e.g. We majorly work on job work basis for chemical manufacturing"
+    "relative_texts": {
+      "Clarified they are job work / domestic only": "Review discipline? These are corporate words. We are a small-scale company, sir.",
+      "Shared operational model & scale": "We operate 2 plant shifts and supply to local B2B distributors only.",
+      "Identified as MNC subsidiary / back office": "We are an MNC back office, all strategic decisions happen in the US.",
+      "Prospect is wrong functional domain": "I am only looking after plant/technical operations, not company growth."
+    },
+    "placeholder": "e.g. 'Review discipline? Corporate words. We are a small job work chemical manufacturer'"
   },
   {
     "stage_number": 5,
     "name": "Their need, in their words",
+    "short_name": "Need",
     "purpose": "Hear what they are trying to achieve or struggling with in their own exact words.",
     "they_may_say": [
       "\"Margins are fixed in job work; we need help getting into new high-value products.\"",
@@ -82,11 +111,18 @@
       "Claimed no needs / satisfied with current setup",
       "Asked what caller can specifically do for them"
     ],
-    "placeholder": "e.g. As soon as I increase margins clients leave; need new products for our facility"
+    "relative_texts": {
+      "Named specific bottleneck (margins / products / capacity)": "We majorly work on job work. The margin is technically hardly any. Looking for people who can help me with new products with our facility.",
+      "Stated skilled manpower / hiring challenge": "Our biggest bottleneck right now is skilled manpower and plant capacity.",
+      "Claimed no needs / satisfied with current setup": "Everything is running fine with existing clients; we don't have any constraints.",
+      "Asked what caller can specifically do for them": "What specifically can you help our manufacturing line with?"
+    },
+    "placeholder": "e.g. 'As soon as I increase margins clients leave; looking for people to help with new products with our facility'"
   },
   {
     "stage_number": 6,
     "name": "Objection",
+    "short_name": "Objection",
     "purpose": "Hear the reason for hesitation and understand it rather than talking over it.",
     "they_may_say": [
       "\"I don't want to spend any money on this, no. Be very specific.\"",
@@ -99,11 +135,18 @@
       "Not decision-maker (referred to MD/HO)",
       "Skeptical of value / requested deck first"
     ],
-    "placeholder": "e.g. I do not want to spend any money on this, no"
+    "relative_texts": {
+      "Budget / cost objection (not spending money)": "I don't want to spend any money on this, no. I'll be very specific. What is your product?",
+      "Existing consultant / agency in place": "We already have global consultants / agencies under long-term contract.",
+      "Not decision-maker (referred to MD/HO)": "I am not the right person, talk to our MD or head office.",
+      "Skeptical of value / requested deck first": "Send your deck first, let me see if it's worth our time."
+    },
+    "placeholder": "e.g. 'I do not want to spend any money on this, no. What is your product?'"
   },
   {
     "stage_number": 7,
     "name": "Next step",
+    "short_name": "Next step",
     "purpose": "Agree on one concrete action: document on WhatsApp/email, or a call at a named time.",
     "they_may_say": [
       "\"Send your deck/report on WhatsApp first, let me review it.\"",
@@ -116,11 +159,18 @@
       "Received referral to decision-maker with contact",
       "Prospect declined any next step"
     ],
-    "placeholder": "e.g. Send it by Monday on WhatsApp, call me on Wednesday afternoon"
+    "relative_texts": {
+      "Agreed to receive report on WhatsApp / email": "Aap na mujhe WhatsApp pe bhej dijiye, let me first go through it. Can I call you on Wednesday? Yeah, aaram se.",
+      "Scheduled specific callback day & time": "Call me next Wednesday afternoon after 2 PM.",
+      "Received referral to decision-maker with contact": "Note down the number of our Operations Head and speak to him.",
+      "Prospect declined any next step": "No, please do not send anything right now."
+    },
+    "placeholder": "e.g. 'Send it by Monday on WhatsApp, call me on Wednesday afternoon'"
   },
   {
     "stage_number": 8,
     "name": "Close",
+    "short_name": "Close",
     "purpose": "End the call clearly, confirm the agreed expectation, and log the outcome accurately.",
     "they_may_say": [
       "\"Yeah, aaram se, take your time, send it and we will connect Wednesday.\"",
@@ -133,6 +183,12 @@
       "Call ended abruptly / hung up",
       "Explicit Do Not Call / hostile exit"
     ],
-    "placeholder": "e.g. Aaram se, take your time. Done, thank you."
+    "relative_texts": {
+      "Confirmed follow-up commitment & closed warmly": "Yeah, aaram se, take your time, send it and we will connect Wednesday.",
+      "Next step agreed, awaiting document review": "Done, chalega, let us talk next week.",
+      "Call ended abruptly / hung up": "Call disconnected / prospect hung up.",
+      "Explicit Do Not Call / hostile exit": "Please do not call this number again."
+    },
+    "placeholder": "e.g. 'Yeah, aaram se, take your time. Done, thank you.'"
   }
 ]

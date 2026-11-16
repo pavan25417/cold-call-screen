@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { STAGES } from '../stagesData.js';
-import { ChevronDown, ChevronRight, Calendar, PhoneCall, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Calendar, Clock, Search, X, Filter } from 'lucide-react';
 
 export default function PastCallsScreen({ calls, onRefresh, isLoading, onViewCallDetails }) {
   const [expandedCallId, setExpandedCallId] = useState(null);
   const [callDetailsMap, setCallDetailsMap] = useState({});
+
+  // Filter and Search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [stageFilter, setStageFilter] = useState('all');
 
   const getStageName = (stageNumber) => {
     const stage = STAGES.find((s) => s.stage_number === stageNumber);
@@ -46,7 +51,56 @@ export default function PastCallsScreen({ calls, onRefresh, isLoading, onViewCal
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Group calls by date and calculate descending call numbers per day (#N down to #1)
+  // Extract unique dates for the date filter dropdown
+  const availableDates = useMemo(() => {
+    if (!calls || calls.length === 0) return [];
+    const map = new Map();
+    calls.forEach((c) => {
+      const d = c.started_at ? new Date(c.started_at) : new Date(c.created_at || Date.now());
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (!map.has(key)) {
+        map.set(key, { key, dateObj: d });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.dateObj - a.dateObj);
+  }, [calls]);
+
+  // Filtered calls
+  const filteredCalls = useMemo(() => {
+    if (!calls) return [];
+    return calls.filter((call) => {
+      // Date filter
+      if (dateFilter !== 'all') {
+        const d = call.started_at ? new Date(call.started_at) : new Date(call.created_at || Date.now());
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (key !== dateFilter) return false;
+      }
+
+      // Stage filter
+      if (stageFilter !== 'all') {
+        const stg = call.last_stage || 1;
+        if (String(stg) !== String(stageFilter)) return false;
+      }
+
+      // Search query (search name, company, summary, outcome)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = call.prospect_name?.toLowerCase().includes(q);
+        const matchCompany = call.company?.toLowerCase().includes(q);
+        const matchSummary = call.summary?.toLowerCase().includes(q);
+        const matchOutcome = call.outcome?.toLowerCase().includes(q);
+        if (!matchName && !matchCompany && !matchSummary && !matchOutcome) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [calls, dateFilter, stageFilter, searchQuery]);
+
+  const isFiltered = searchQuery.trim() !== '' || dateFilter !== 'all' || stageFilter !== 'all';
+
+  // Group filtered calls by date and calculate descending call numbers per day (#N down to #1)
   const groupCallsByDate = (callsList) => {
     if (!callsList || callsList.length === 0) return [];
 
@@ -66,11 +120,9 @@ export default function PastCallsScreen({ calls, onRefresh, isLoading, onViewCal
       groupsMap.get(dateKey).calls.push(call);
     });
 
-    // Sort groups latest date first
     const sortedGroups = Array.from(groupsMap.values()).sort((a, b) => b.dateObj - a.dateObj);
 
     return sortedGroups.map((group) => {
-      // Sort calls in that day from newest to oldest
       const sortedCalls = [...group.calls].sort((a, b) => {
         const timeA = new Date(a.started_at || a.created_at || 0).getTime();
         const timeB = new Date(b.started_at || b.created_at || 0).getTime();
@@ -93,7 +145,7 @@ export default function PastCallsScreen({ calls, onRefresh, isLoading, onViewCal
     });
   };
 
-  const dateGroups = groupCallsByDate(calls);
+  const dateGroups = groupCallsByDate(filteredCalls);
 
   const toggleExpand = async (callId) => {
     if (expandedCallId === callId) {
@@ -134,10 +186,106 @@ export default function PastCallsScreen({ calls, onRefresh, isLoading, onViewCal
         </button>
       </div>
 
+      {/* Simple, Clean Filter & Search Bar */}
+      <div className="bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search prospect, company, notes..."
+            className="w-full bg-white border border-zinc-200 focus:border-zinc-900 focus:outline-none rounded-lg pl-8 pr-7 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 transition"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-0.5"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+
+        {/* Date Filter */}
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="bg-white border border-zinc-200 focus:border-zinc-900 focus:outline-none rounded-lg px-2.5 py-1.5 text-xs text-zinc-700 font-medium cursor-pointer"
+        >
+          <option value="all">All Dates ({calls?.length || 0})</option>
+          {availableDates.map((d) => (
+            <option key={d.key} value={d.key}>
+              {formatDateHeader(d.dateObj)}
+            </option>
+          ))}
+        </select>
+
+        {/* Stage Filter */}
+        <select
+          value={stageFilter}
+          onChange={(e) => setStageFilter(e.target.value)}
+          className="bg-white border border-zinc-200 focus:border-zinc-900 focus:outline-none rounded-lg px-2.5 py-1.5 text-xs text-zinc-700 font-medium cursor-pointer"
+        >
+          <option value="all">All Stages (1-8)</option>
+          {STAGES.map((s) => (
+            <option key={s.stage_number} value={s.stage_number}>
+              Stage {s.stage_number}: {s.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Clear Filters Button */}
+        {isFiltered && (
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setDateFilter('all');
+              setStageFilter('all');
+            }}
+            className="text-xs font-semibold text-zinc-500 hover:text-zinc-900 px-2 py-1 transition whitespace-nowrap"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
+      {/* Filter Stats Notice */}
+      {isFiltered && (
+        <div className="flex items-center justify-between text-xs text-zinc-500 px-1">
+          <span>Showing {filteredCalls.length} matching {filteredCalls.length === 1 ? 'call' : 'calls'}</span>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setDateFilter('all');
+              setStageFilter('all');
+            }}
+            className="text-zinc-400 hover:text-zinc-700 underline text-[11px]"
+          >
+            Reset view
+          </button>
+        </div>
+      )}
+
       {/* Empty State */}
-      {!calls || calls.length === 0 ? (
+      {(!calls || calls.length === 0) ? (
         <div className="py-16 text-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-xl">
           No saved calls yet. Start your first call to see it recorded here.
+        </div>
+      ) : filteredCalls.length === 0 ? (
+        <div className="py-12 text-center text-xs text-zinc-500 border border-dashed border-zinc-200 rounded-xl space-y-2">
+          <p>No past calls match your search or filter criteria.</p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setDateFilter('all');
+              setStageFilter('all');
+            }}
+            className="text-xs font-semibold text-zinc-900 underline"
+          >
+            Clear all filters
+          </button>
         </div>
       ) : (
         /* Date-wise Groups with Divisions */

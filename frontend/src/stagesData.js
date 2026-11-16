@@ -15,6 +15,12 @@ export const STAGES = [
       "Wrong number / person left company",
       "Bad connection / asked to call back"
     ],
+    relative_texts: {
+      "Connected with right person": "Yes, speaking. Who is this?",
+      "Gatekeeper / switchboard assistant": "He is in a meeting right now, what is this regarding?",
+      "Wrong number / person left company": "Aap kisse baat karna chahte hain? Wrong number, he left two years ago.",
+      "Bad connection / asked to call back": "Awaaz nahi aa rahi hai, please call me back after some time."
+    },
     placeholder: "e.g. 'He left the company two years ago' or 'Yes, speaking'"
   },
   {
@@ -33,6 +39,12 @@ export const STAGES = [
       "Asked where we got their contact info",
       "Suspected sales call / defensive"
     ],
+    relative_texts: {
+      "Understood purpose & willing to listen": "Regarding what? Yes, please go ahead.",
+      "Asked what company does / asked to repeat": "From where? Can you say the company name again?",
+      "Asked where we got their contact info": "Where did you get my contact number from?",
+      "Suspected sales call / defensive": "What does a growth report mean? Is this a sales call?"
+    },
     placeholder: "e.g. 'What does Meridian do exactly, are you consulting or media?'"
   },
   {
@@ -51,6 +63,12 @@ export const STAGES = [
       "Requested WhatsApp / email before talking",
       "Flat refusal / not interested"
     ],
+    relative_texts: {
+      "Granted permission (go ahead)": "Haan boliye, go ahead, I can speak for 2 minutes.",
+      "Busy now (asked to call back later)": "I am driving / in a meeting right now, call me after 30 minutes.",
+      "Requested WhatsApp / email before talking": "Drop a message or send it on WhatsApp first.",
+      "Flat refusal / not interested": "Not interested right now, thank you."
+    },
     placeholder: "e.g. 'I am in a client meeting right now, please call after 30 minutes'"
   },
   {
@@ -69,6 +87,12 @@ export const STAGES = [
       "Identified as MNC subsidiary / back office",
       "Prospect is wrong functional domain"
     ],
+    relative_texts: {
+      "Clarified they are job work / domestic only": "Review discipline? These are corporate words. We are a small-scale company, sir.",
+      "Shared operational model & scale": "We operate 2 plant shifts and supply to local B2B distributors only.",
+      "Identified as MNC subsidiary / back office": "We are an MNC back office, all strategic decisions happen in the US.",
+      "Prospect is wrong functional domain": "I am only looking after plant/technical operations, not company growth."
+    },
     placeholder: "e.g. 'Review discipline? Corporate words. We are a small job work chemical manufacturer'"
   },
   {
@@ -87,6 +111,12 @@ export const STAGES = [
       "Claimed no needs / satisfied with current setup",
       "Asked what caller can specifically do for them"
     ],
+    relative_texts: {
+      "Named specific bottleneck (margins / products / capacity)": "We majorly work on job work. The margin is technically hardly any. Looking for people who can help me with new products with our facility.",
+      "Stated skilled manpower / hiring challenge": "Our biggest bottleneck right now is skilled manpower and plant capacity.",
+      "Claimed no needs / satisfied with current setup": "Everything is running fine with existing clients; we don't have any constraints.",
+      "Asked what caller can specifically do for them": "What specifically can you help our manufacturing line with?"
+    },
     placeholder: "e.g. 'As soon as I increase margins clients leave; looking for people to help with new products with our facility'"
   },
   {
@@ -105,6 +135,12 @@ export const STAGES = [
       "Not decision-maker (referred to MD/HO)",
       "Skeptical of value / requested deck first"
     ],
+    relative_texts: {
+      "Budget / cost objection (not spending money)": "I don't want to spend any money on this, no. I'll be very specific. What is your product?",
+      "Existing consultant / agency in place": "We already have global consultants / agencies under long-term contract.",
+      "Not decision-maker (referred to MD/HO)": "I am not the right person, talk to our MD or head office.",
+      "Skeptical of value / requested deck first": "Send your deck first, let me see if it's worth our time."
+    },
     placeholder: "e.g. 'I do not want to spend any money on this, no. What is your product?'"
   },
   {
@@ -123,6 +159,12 @@ export const STAGES = [
       "Received referral to decision-maker with contact",
       "Prospect declined any next step"
     ],
+    relative_texts: {
+      "Agreed to receive report on WhatsApp / email": "Aap na mujhe WhatsApp pe bhej dijiye, let me first go through it. Can I call you on Wednesday? Yeah, aaram se.",
+      "Scheduled specific callback day & time": "Call me next Wednesday afternoon after 2 PM.",
+      "Received referral to decision-maker with contact": "Note down the number of our Operations Head and speak to him.",
+      "Prospect declined any next step": "No, please do not send anything right now."
+    },
     placeholder: "e.g. 'Send it by Monday on WhatsApp, call me on Wednesday afternoon'"
   },
   {
@@ -141,6 +183,12 @@ export const STAGES = [
       "Call ended abruptly / hung up",
       "Explicit Do Not Call / hostile exit"
     ],
+    relative_texts: {
+      "Confirmed follow-up commitment & closed warmly": "Yeah, aaram se, take your time, send it and we will connect Wednesday.",
+      "Next step agreed, awaiting document review": "Done, chalega, let us talk next week.",
+      "Call ended abruptly / hung up": "Call disconnected / prospect hung up.",
+      "Explicit Do Not Call / hostile exit": "Please do not call this number again."
+    },
     placeholder: "e.g. 'Yeah, aaram se, take your time. Done, thank you.'"
   }
 ];
