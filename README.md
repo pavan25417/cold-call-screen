@@ -2,7 +2,7 @@
 
 A purpose-built web application designed for B2B sales professionals to keep open during live cold calls. Built for the **Forward Deployed Engineer (Hyderabad)** selection task at **DeepThought CultureTech Ventures**.
 
-Live application URL: `https://cold-call-screen.vercel.app` (or your Vercel deployment URL)  
+Live application URL: `https://cold-call-screen-sand.vercel.app`  
 Backend Health Check URL: `https://cold-call-screen-backend.onrender.com/health`  
 GitHub Repository: `https://github.com/pavan25417/cold-call-screen`  
 Google Drive Video (6+ Mins, Public): `https://drive.google.com/file/d/YOUR_VIDEO_ID/view?usp=sharing`  

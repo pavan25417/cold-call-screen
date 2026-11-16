@@ -10,8 +10,8 @@ Hi Tarun,
 I have completed and deployed the Cold Call Screen companion for the Forward Deployed Engineer role in Hyderabad.
 
 Here are the links to my work:
-1. Public GitHub Repo: https://github.com/YOUR_GITHUB_USERNAME/cold-call-screen
-2. Live Vercel Application: https://YOUR_APP_NAME.vercel.app
+1. Public GitHub Repo: https://github.com/pavan25417/cold-call-screen
+2. Live Vercel Application: https://cold-call-screen-sand.vercel.app
 3. Render Backend Health URL: https://cold-call-screen-backend.onrender.com/health
 4. 6-Minute Walkthrough Video (Google Drive): https://drive.google.com/file/d/YOUR_VIDEO_ID/view?usp=sharing
 
