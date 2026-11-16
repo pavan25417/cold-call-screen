@@ -240,51 +240,34 @@ export default function App() {
             />
           ) : (
             /* Empty State: Prompt Caller to Start Call */
-            <div className="max-w-md mx-auto px-4 py-16 text-center space-y-6">
-              <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-5">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
-                  <PhoneCall className="w-7 h-7" />
-                </div>
-                <div className="space-y-1.5">
-                  <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    Start Live Cold Call
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Keep this companion screen open during your cold call. It guides you step-by-step through all 8 stages from Opening to Close.
-                  </p>
-                </div>
+            <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">
+                  Cold call guide
+                </h2>
+                <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
+                  A screen that walks a caller through the 8 stages of a cold call: Opening → Purpose → Permission → Their business → Their need → Objection → Next step → Close.
+                </p>
+              </div>
 
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <button
-                    onClick={() => setIsStartModalOpen(true)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-4 h-4 fill-white" />
-                    <span>Start New Call</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('past')}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 transition"
-                  >
-                    View Past Calls ({callsList.length})
-                  </button>
-                </div>
-
-                {/* Demo call quick button */}
-                <div className="pt-4 border-t border-slate-100">
-                  <button
-                    onClick={() => {
-                      handleStartCall({
-                        prospect_name: 'Mr. Dhanchand',
-                        company: 'Dhanchand Chemicals'
-                      });
-                    }}
-                    className="w-full text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 p-2.5 rounded-xl transition flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>1-Click Launch Video Demo: Mr. Dhanchand (T095)</span>
-                  </button>
-                </div>
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={() => setIsStartModalOpen(true)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg transition shadow-2xs"
+                >
+                  Start call
+                </button>
+                <button
+                  onClick={() => {
+                    handleStartCall({
+                      prospect_name: 'Mr. Dhanchand',
+                      company: 'Dhanchand Chemicals'
+                    });
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold rounded-lg border border-zinc-300 transition"
+                >
+                  Demo call (T095: Mr. Dhanchand)
+                </button>
               </div>
             </div>
           )
