@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DEMO_T095_SCRIPT } from '../stagesData.js';
-import { Mic, MicOff, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, AlertCircle, Volume2, Sparkles } from 'lucide-react';
 
 export default function LiveCallScreen({
   activeCall,
@@ -14,9 +14,14 @@ export default function LiveCallScreen({
   const [selectedOutcome, setSelectedOutcome] = useState('');
   const [prospectWords, setProspectWords] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0); // 0-100 real-time mic volume
   const [voiceError, setVoiceError] = useState(null);
 
+  const isListeningRef = useRef(false);
   const recognitionRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const animFrameRef = useRef(null);
   const textareaRef = useRef(null);
 
   const stageNum = currentStage?.stage_number || 1;
@@ -42,23 +47,14 @@ export default function LiveCallScreen({
     }
 
     // Stop listening when switching stages
-    if (isListening && recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {}
-      setIsListening(false);
-    }
+    stopListening();
     setVoiceError(null);
   }, [currentStage?.stage_number, savedStageData, isDemoCall]);
 
-  // Clean up recognition on unmount
+  // Clean up all audio/recognition resources on unmount
   useEffect(() => {
     return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {}
-      }
+      stopListening();
     };
   }, []);
 
@@ -121,77 +117,155 @@ export default function LiveCallScreen({
     }
   };
 
-  // Toggle voice transcription
-  const toggleVoice = () => {
-    if (isListening) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {}
-      }
-      setIsListening(false);
-      return;
+  // Stop listening and tear down audio stream
+  const stopListening = () => {
+    isListeningRef.current = false;
+    setIsListening(false);
+    setAudioLevel(0);
+
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
     }
 
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+
+    if (mediaStreamRef.current) {
+      try {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      } catch (e) {}
+      mediaStreamRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+  };
+
+  // Start listening with live volume meter and speech recognition
+  const startListening = async () => {
+    // 1. Clear text box immediately as requested by user
+    setProspectWords('');
+    setVoiceError(null);
+
+    // 2. Request mic access to wake hardware & drive live sound bars
+    let stream = null;
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          const audioCtx = new AudioContextClass();
+          audioContextRef.current = audioCtx;
+          const source = audioCtx.createMediaStreamSource(stream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const updateMeter = () => {
+            if (!isListeningRef.current) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            setAudioLevel(Math.min(100, Math.round((avg / 128) * 100)));
+            animFrameRef.current = requestAnimationFrame(updateMeter);
+          };
+          updateMeter();
+        }
+      }
+    } catch (err) {
+      console.warn('Microphone permission check warning:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setVoiceError('Microphone permission denied. Click the lock/tune icon near your browser address bar to allow mic access.');
+        return;
+      }
+    }
+
+    // 3. Initialize SpeechRecognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setVoiceError('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+      setVoiceError('Speech recognition is not supported in this browser. Please use Google Chrome, Safari, or Microsoft Edge.');
       return;
     }
 
     try {
-      // CLEAR the text box immediately so only the live spoken transcribe is captured
-      setProspectWords('');
-      setVoiceError(null);
-
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Indian English, fallback supported
-
-      let finalTranscript = '';
+      // Use device or Indian English
+      recognition.lang = navigator.language || 'en-IN';
 
       recognition.onstart = () => {
+        isListeningRef.current = true;
         setIsListening(true);
         setVoiceError(null);
       };
 
       recognition.onresult = (event) => {
-        let interim = '';
-        for (let i = 0; i < event.results.length; ++i) {
-          const part = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += part + ' ';
-          } else {
-            interim += part;
-          }
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
         }
-        const spoken = (finalTranscript + interim).trim();
-        setProspectWords(spoken);
+        if (fullTranscript.trim()) {
+          setProspectWords(fullTranscript.trim());
+        }
       };
 
       recognition.onerror = (event) => {
-        console.warn('SpeechRecognition error:', event.error);
+        console.warn('SpeechRecognition event error:', event.error);
         if (event.error === 'not-allowed') {
-          setVoiceError('Microphone access blocked. Click the lock/tune icon near your browser address bar to allow microphone.');
+          setVoiceError('Microphone permission blocked. Please allow microphone in browser settings.');
+          stopListening();
+        } else if (event.error === 'network') {
+          setVoiceError('Speech recognition network error. (Note: Brave browser blocks Google Speech by default; enable it in brave://settings/privacy or use Chrome).');
         } else if (event.error === 'no-speech') {
           // Normal pause, keep listening
-        } else {
-          setVoiceError(`Voice error: ${event.error}`);
         }
-        setIsListening(false);
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // Auto-restart if user still wants to listen (Chrome closes on brief silence)
+        if (isListeningRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {
+            // Already started or busy
+          }
+        } else {
+          stopListening();
+        }
       };
 
       recognitionRef.current = recognition;
+      isListeningRef.current = true;
+      setIsListening(true);
       recognition.start();
     } catch (err) {
       console.error('Failed to start speech recognition:', err);
-      setVoiceError('Could not start microphone: ' + err.message);
-      setIsListening(false);
+      setVoiceError('Could not start recognition: ' + err.message);
+      stopListening();
+    }
+  };
+
+  const toggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
@@ -303,56 +377,89 @@ export default function LiveCallScreen({
         </div>
       </div>
 
-      {/* Their words (with Voice Transcription) */}
+      {/* Their words (with Voice Transcription & Audio Wave) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs">
-          <label className="font-semibold text-zinc-900">
-            Their words
+          <label className="font-semibold text-zinc-900 flex items-center gap-1.5">
+            <span>Their words</span>
             {stageNum === 5 && (
-              <span className="ml-1.5 text-[10px] text-zinc-500 font-normal uppercase tracking-wider">
+              <span className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">
                 (verbatim notes)
               </span>
             )}
           </label>
 
-          {/* Voice Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleVoice}
-            className={`text-xs px-2.5 py-1 rounded-md transition flex items-center gap-1.5 font-medium border ${
-              isListening
-                ? 'bg-rose-50 border-rose-300 text-rose-700 animate-pulse'
-                : 'bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-300'
-            }`}
-            title="Click or press Spacebar to toggle voice transcription"
-          >
-            {isListening ? (
-              <>
-                <Mic className="w-3.5 h-3.5 text-rose-600 stroke-[2.5]" />
-                <span className="font-semibold text-[11px]">Transcribing... (Space to stop)</span>
-              </>
-            ) : (
-              <>
-                <Mic className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="text-[11px]">Transcribe [Space]</span>
-              </>
+          {/* Voice Toggle Button with Live Sound Visualizer */}
+          <div className="flex items-center gap-2">
+            {isListening && (
+              /* Real-time Voice Decibel Waveform */
+              <div 
+                className="flex items-center gap-0.5 h-5 px-2 bg-rose-50 border border-rose-200 rounded-md"
+                title={`Mic input active: volume ${audioLevel}%`}
+              >
+                <div 
+                  className="w-1 bg-rose-500 rounded-full transition-all duration-75" 
+                  style={{ height: `${Math.max(4, Math.round((audioLevel / 100) * 16))}px` }} 
+                />
+                <div 
+                  className="w-1 bg-rose-600 rounded-full transition-all duration-75" 
+                  style={{ height: `${Math.max(6, Math.round((audioLevel / 100) * 20))}px` }} 
+                />
+                <div 
+                  className="w-1 bg-rose-500 rounded-full transition-all duration-75" 
+                  style={{ height: `${Math.max(4, Math.round((audioLevel / 100) * 14))}px` }} 
+                />
+              </div>
             )}
-          </button>
+
+            <button
+              type="button"
+              onClick={toggleVoice}
+              className={`text-xs px-2.5 py-1 rounded-md transition flex items-center gap-1.5 font-medium border ${
+                isListening
+                  ? 'bg-rose-600 border-rose-600 text-white font-semibold shadow-xs'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'
+              }`}
+              title="Click or press Spacebar to toggle microphone transcription"
+            >
+              {isListening ? (
+                <>
+                  <MicOff className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span className="text-[11px]">Stop Recording [Space]</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-3.5 h-3.5 text-zinc-500" />
+                  <span className="text-[11px]">Transcribe [Space]</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Live Transcribing Indicator */}
+        {/* Live Transcribing State Notice */}
         {isListening && (
-          <div className="text-[11px] text-rose-600 font-medium flex items-center gap-1.5 py-0.5">
-            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
-            <span>Listening to prospect speech... Transcribing directly into box.</span>
+          <div className="text-[11px] text-rose-700 font-medium flex items-center justify-between bg-rose-50/60 border border-rose-200/80 px-2.5 py-1 rounded-md">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
+              <span>Listening to customer... Speak into your microphone.</span>
+            </span>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {audioLevel > 5 ? 'Mic audio detected' : 'Waiting for voice...'}
+            </span>
           </div>
         )}
 
         {/* Error notice if microphone blocked */}
         {voiceError && (
-          <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-lg flex items-start gap-1.5">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
-            <span>{voiceError}</span>
+          <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-lg space-y-1">
+            <div className="flex items-start gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
+              <span className="font-medium">{voiceError}</span>
+            </div>
+            <p className="text-[10px] text-zinc-500 pl-5">
+              Tip: You can also click any quote in "They may say" or "Quick fill" below to populate instantly.
+            </p>
           </div>
         )}
 
