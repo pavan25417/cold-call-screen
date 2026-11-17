@@ -5,7 +5,7 @@ A purpose-built web application designed for B2B sales professionals to keep ope
 Live application URL: `https://cold-call-screen-sand.vercel.app`  
 Backend Health Check URL: `https://cold-call-screen-backend.onrender.com/health`  
 GitHub Repository: `https://github.com/pavan25417/cold-call-screen`  
-Google Drive Video (6+ Mins, Public): `https://drive.google.com/file/d/YOUR_VIDEO_ID/view?usp=sharing`  
+Google Drive Video (6+ Mins, Public): `https://drive.google.com/file/d/1A5ENqANyN5Sgk6ZnfzX5MsBxrv2D9epV/view?usp=sharing`  
 Chosen Demo Transcript: **Transcript T095** (Mr. Dhanchand · Dhanchand Chemicals)
 
 ---
